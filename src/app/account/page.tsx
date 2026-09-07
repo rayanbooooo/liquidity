@@ -8,6 +8,7 @@ import {
 } from "lucide-react";
 import { RiskOverview } from "@/components/account/RiskOverview";
 import { PositionRow } from "@/components/positions/PositionRow";
+import { AarkSessionSetup } from "@/components/wallet/AarkSessionSetup";
 import { ConnectWalletButton } from "@/components/wallet/ConnectWalletButton";
 import { formatUsd } from "@/lib/calc";
 import { MARGIN_SUMMARY, POSITIONS } from "@/lib/mock-data";
@@ -45,10 +46,13 @@ export default function AccountPage() {
           <ConnectWalletButton />
         </div>
         <p className="mt-2.5 text-[11px] leading-snug text-muted-2">
-          Connecting a wallet is real. Trading against Aark Digital isn&apos;t wired up yet — the
-          balance below and every order in this app is still simulated.
+          Connecting a wallet, and registering/authorizing a session key below, are real. Depositing
+          and placing orders aren&apos;t wired up yet — the balance below and every order in the app
+          stay simulated.
         </p>
       </div>
+
+      <AarkSessionSetup />
 
       <div className="mt-4 rounded-2xl border border-border-subtle bg-surface p-4">
         <div className="text-xs font-medium text-muted-2">Simulated balance</div>
