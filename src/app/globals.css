@@ -1,0 +1,86 @@
+@import "tailwindcss";
+
+:root {
+  --background: #000000;
+  --surface: #0a0a0b;
+  --surface-2: #131316;
+  --surface-3: #1c1c20;
+  --border: #27272a;
+  --border-subtle: #1c1c1f;
+  --foreground: #fafafa;
+  --muted: #a1a1aa;
+  --muted-2: #71717a;
+
+  --long: #00e676;
+  --long-dim: #00e67626;
+  --short: #ff5252;
+  --short-dim: #ff525226;
+  --warning: #ffb020;
+
+  --font-display: var(--font-space-grotesk);
+  --font-numeric: var(--font-jetbrains-mono);
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-surface: var(--surface);
+  --color-surface-2: var(--surface-2);
+  --color-surface-3: var(--surface-3);
+  --color-border: var(--border);
+  --color-border-subtle: var(--border-subtle);
+  --color-foreground: var(--foreground);
+  --color-muted: var(--muted);
+  --color-muted-2: var(--muted-2);
+
+  --color-long: var(--long);
+  --color-long-dim: var(--long-dim);
+  --color-short: var(--short);
+  --color-short-dim: var(--short-dim);
+  --color-warning: var(--warning);
+
+  --font-sans: var(--font-display);
+  --font-mono: var(--font-numeric);
+
+  --animate-pulse-slow: pulse-slow 2.4s ease-in-out infinite;
+}
+
+@keyframes pulse-slow {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.55;
+  }
+}
+
+html {
+  color-scheme: dark;
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-feature-settings: "cv11", "ss01";
+}
+
+* {
+  -webkit-tap-highlight-color: transparent;
+}
+
+::selection {
+  background: var(--long);
+  color: #000000;
+}
+
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.tabular-nums {
+  font-variant-numeric: tabular-nums;
+}
