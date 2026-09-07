@@ -8,6 +8,7 @@ import {
 } from "lucide-react";
 import { RiskOverview } from "@/components/account/RiskOverview";
 import { PositionRow } from "@/components/positions/PositionRow";
+import { ConnectWalletButton } from "@/components/wallet/ConnectWalletButton";
 import { formatUsd } from "@/lib/calc";
 import { MARGIN_SUMMARY, POSITIONS } from "@/lib/mock-data";
 
@@ -36,7 +37,21 @@ export default function AccountPage() {
       </div>
 
       <div className="mt-5 rounded-2xl border border-border-subtle bg-surface p-4">
-        <div className="text-xs font-medium text-muted-2">Total balance</div>
+        <div className="flex items-center justify-between">
+          <span className="text-xs font-medium text-muted-2">On-chain wallet</span>
+          <span className="text-[10px] font-medium text-muted-2">Arbitrum One</span>
+        </div>
+        <div className="mt-2">
+          <ConnectWalletButton />
+        </div>
+        <p className="mt-2.5 text-[11px] leading-snug text-muted-2">
+          Connecting a wallet is real. Trading against Aark Digital isn&apos;t wired up yet — the
+          balance below and every order in this app is still simulated.
+        </p>
+      </div>
+
+      <div className="mt-4 rounded-2xl border border-border-subtle bg-surface p-4">
+        <div className="text-xs font-medium text-muted-2">Simulated balance</div>
         <div className="mt-1 font-mono text-3xl font-semibold tabular-nums">
           {formatUsd(MARGIN_SUMMARY.totalEquity)}
         </div>

@@ -2,6 +2,7 @@
 
 import { useMemo, useState } from "react";
 import { ArrowLeftRight, TriangleAlert } from "lucide-react";
+import { useConnection } from "wagmi";
 import { Button } from "@/components/ui/Button";
 import { LongShortToggle, SegmentedControl } from "@/components/ui/SegmentedControl";
 import { LeverageSlider } from "@/components/trade/LeverageSlider";
@@ -31,6 +32,7 @@ function tierColor(leverage: number): string {
 }
 
 export function OrderTicket({ asset }: { asset: Asset }) {
+  const connection = useConnection();
   const [side, setSide] = useState<Side>("long");
   const [orderType, setOrderType] = useState<OrderType>("market");
   const [leverage, setLeverage] = useState(Math.min(10, asset.maxLeverage));
@@ -183,6 +185,12 @@ export function OrderTicket({ asset }: { asset: Asset }) {
       >
         {side === "long" ? "Open Long" : "Open Short"} · {asset.display}
       </Button>
+      {connection.status === "connected" && (
+        <p className="mt-2 text-center text-[11px] text-muted-2">
+          Wallet connected, but live execution via Aark Digital isn&apos;t wired up yet — this
+          order stays simulated.
+        </p>
+      )}
     </div>
   );
 }

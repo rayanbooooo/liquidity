@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import { JetBrains_Mono, Space_Grotesk } from "next/font/google";
 import { AppFrame } from "@/components/shell/AppFrame";
 import { BottomNav } from "@/components/shell/BottomNav";
+import { Providers } from "./providers";
 import "./globals.css";
 
 const spaceGrotesk = Space_Grotesk({
@@ -36,10 +37,12 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
       className={`${spaceGrotesk.variable} ${jetbrainsMono.variable} h-full antialiased`}
     >
       <body className="h-full">
-        <AppFrame>
-          <main className="no-scrollbar flex-1 overflow-y-auto pb-24">{children}</main>
-          <BottomNav />
-        </AppFrame>
+        <Providers>
+          <AppFrame>
+            <main className="no-scrollbar flex-1 overflow-y-auto pb-24">{children}</main>
+            <BottomNav />
+          </AppFrame>
+        </Providers>
       </body>
     </html>
   );
