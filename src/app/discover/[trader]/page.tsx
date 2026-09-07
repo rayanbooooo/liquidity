@@ -55,22 +55,23 @@ export default async function TraderProfilePage({
         ))}
       </div>
 
-      <div className="mt-5 rounded-2xl border border-border-subtle bg-surface p-4">
-        <div className="flex items-center justify-between">
-          <span className="text-xs font-medium text-muted-2">YTD performance</span>
-          <span className={cn("font-mono text-lg font-semibold tabular-nums", positive ? "text-long" : "text-short")}>
-            {formatPct(trader.ytdReturnPct)}
-          </span>
+      <div className="mt-5 overflow-hidden rounded-3xl border border-border-subtle bg-surface">
+        <div className="p-4 pb-1">
+          <div className="flex items-center justify-between">
+            <span className="text-xs font-medium text-muted-2">YTD performance</span>
+            <span className={cn("font-mono text-lg font-semibold tabular-nums", positive ? "text-long" : "text-short")}>
+              {formatPct(trader.ytdReturnPct)}
+            </span>
+          </div>
+          <div className="mt-2">
+            <Sparkline data={trader.performance} width={360} height={90} strokeWidth={2} />
+          </div>
         </div>
-        <div className="mt-2">
-          <Sparkline data={trader.performance} width={360} height={90} strokeWidth={2} />
+        <div className="grid grid-cols-3 divide-x divide-border-subtle border-t border-border-subtle py-3">
+          <Stat label="Win rate" value={`${trader.winRate}%`} />
+          <Stat label="Risk score" value={RISK_LABEL[trader.riskScore]} valueClassName={RISK_TONE[trader.riskScore]} />
+          <Stat label="Trades" value={formatCompact(trader.totalTrades)} />
         </div>
-      </div>
-
-      <div className="mt-3 grid grid-cols-3 gap-2 rounded-2xl border border-border-subtle bg-surface p-3">
-        <Stat label="Win rate" value={`${trader.winRate}%`} />
-        <Stat label="Risk score" value={RISK_LABEL[trader.riskScore]} valueClassName={RISK_TONE[trader.riskScore]} />
-        <Stat label="Trades" value={formatCompact(trader.totalTrades)} />
       </div>
 
       <p className="mt-4 text-sm leading-relaxed text-muted">{trader.bio}</p>

@@ -14,7 +14,7 @@ export function RiskOverview() {
   const tier = marginTier(usedPct);
 
   return (
-    <div className="rounded-2xl border border-border-subtle bg-surface p-4">
+    <div>
       <div className="flex items-center justify-between">
         <span className="text-xs font-medium text-muted-2">Margin health</span>
         <span className="text-xs font-semibold" style={{ color: tier.color }}>
@@ -22,14 +22,14 @@ export function RiskOverview() {
         </span>
       </div>
 
-      <div className="mt-2.5 h-2 w-full overflow-hidden rounded-full bg-surface-3">
+      <div className="mt-2.5 h-1.5 w-full overflow-hidden rounded-full bg-surface-3">
         <div
           className="h-full rounded-full transition-all"
           style={{ width: `${Math.min(100, usedPct)}%`, background: tier.color }}
         />
       </div>
 
-      <div className="mt-4 grid grid-cols-3 gap-2">
+      <div className="mt-4 grid grid-cols-3 divide-x divide-border-subtle border-y border-border-subtle py-3">
         <Tile label="Available" value={formatUsd(walletBalance, 0)} />
         <Tile label="In margin" value={formatUsd(marginUsed, 0)} />
         <Tile
@@ -44,7 +44,7 @@ export function RiskOverview() {
 
 function Tile({ label, value, valueClassName }: { label: string; value: string; valueClassName?: string }) {
   return (
-    <div className="rounded-xl bg-surface-2 p-2.5 text-center">
+    <div className="px-3 text-center first:pl-0 last:pr-0">
       <div className={cn("font-mono text-xs font-semibold tabular-nums", valueClassName)}>{value}</div>
       <div className="mt-0.5 text-[10px] text-muted-2">{label}</div>
     </div>

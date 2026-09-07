@@ -4,21 +4,25 @@ import { formatPct } from "@/lib/calc";
 export function ChangeBadge({
   value,
   size = "md",
+  plain = false,
   className,
 }: {
   value: number;
   size?: "sm" | "md" | "lg";
+  /** Text-color only, no pill background — for dense lists where a badge per row reads as wallpaper. */
+  plain?: boolean;
   className?: string;
 }) {
   const positive = value >= 0;
   return (
     <span
       className={cn(
-        "inline-flex items-center gap-0.5 rounded-md font-mono font-medium tabular-nums",
-        positive ? "bg-long-dim text-long" : "bg-short-dim text-short",
-        size === "sm" && "px-1.5 py-0.5 text-[11px]",
-        size === "md" && "px-2 py-1 text-xs",
-        size === "lg" && "px-2.5 py-1.5 text-sm",
+        "inline-flex items-center gap-0.5 font-mono font-medium tabular-nums",
+        positive ? "text-long" : "text-short",
+        plain ? "" : cn("rounded-md", positive ? "bg-long-dim" : "bg-short-dim"),
+        size === "sm" && (plain ? "text-[11px]" : "px-1.5 py-0.5 text-[11px]"),
+        size === "md" && (plain ? "text-xs" : "px-2 py-1 text-xs"),
+        size === "lg" && (plain ? "text-sm" : "px-2.5 py-1.5 text-sm"),
         className,
       )}
     >

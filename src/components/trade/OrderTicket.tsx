@@ -152,7 +152,7 @@ export function OrderTicket({ asset }: { asset: Asset }) {
         </span>
       </div>
 
-      <div className="mt-5 space-y-2.5 rounded-2xl border border-border-subtle bg-surface p-4">
+      <div className="mt-5 space-y-2.5 border-t border-border-subtle pt-4">
         <Row label="Required margin" value={formatUsd(margin)} />
         <Row label="Est. fee" value={formatUsd(fee)} />
         <div className="my-1 h-px bg-border-subtle" />

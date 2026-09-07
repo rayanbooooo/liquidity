@@ -84,7 +84,9 @@ export function BottomNav() {
             >
               <Icon
                 size={22}
-                strokeWidth={2.25}
+                strokeWidth={2}
+                fill={active ? "currentColor" : "none"}
+                fillOpacity={active ? 0.16 : 0}
                 className={active ? "text-foreground" : "text-muted-2"}
               />
               <span
@@ -95,6 +97,12 @@ export function BottomNav() {
               >
                 {label}
               </span>
+              <span
+                className={cn(
+                  "h-[3px] w-[3px] rounded-full transition-opacity",
+                  active ? "bg-long opacity-100" : "opacity-0",
+                )}
+              />
             </Link>
           );
         })}

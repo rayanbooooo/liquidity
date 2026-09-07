@@ -35,13 +35,13 @@ export function AssetHeader({ asset }: { asset: Asset }) {
       </div>
 
       <div className="mt-3 flex items-baseline gap-2">
-        <span className="font-mono text-[2rem] font-semibold leading-none tabular-nums">
+        <span className="font-mono text-[2rem] font-semibold leading-none tracking-tight tabular-nums">
           {formatPrice(asset.price, asset.decimals)}
         </span>
         <ChangeBadge value={asset.changePct24h} size="lg" />
       </div>
 
-      <div className="mt-4 grid grid-cols-4 gap-2 rounded-2xl border border-border-subtle bg-surface p-3">
+      <div className="mt-4 grid grid-cols-4 divide-x divide-border-subtle border-y border-border-subtle py-2.5">
         <Stat label="Open" value={formatPrice(open, asset.decimals)} />
         <Stat label="High" value={formatPrice(high, asset.decimals)} tone="long" />
         <Stat label="Low" value={formatPrice(low, asset.decimals)} tone="short" />
@@ -53,7 +53,7 @@ export function AssetHeader({ asset }: { asset: Asset }) {
 
 function Stat({ label, value, tone }: { label: string; value: string; tone?: "long" | "short" }) {
   return (
-    <div>
+    <div className="px-2.5 first:pl-0">
       <div className="text-[10px] font-medium text-muted-2">{label}</div>
       <div
         className={

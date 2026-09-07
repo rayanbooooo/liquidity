@@ -43,7 +43,7 @@ export function AarkSessionSetup() {
   if (connection.status !== "connected") return null;
 
   return (
-    <div className="mt-4 rounded-2xl border border-border-subtle bg-surface p-4">
+    <div className="mt-4 rounded-xl bg-surface-2 p-3.5">
       <div className="flex items-center gap-2">
         <KeyRound size={15} className="text-muted-2" />
         <span className="text-xs font-medium text-muted-2">Aark session key</span>
@@ -73,7 +73,7 @@ export function AarkSessionSetup() {
           <button
             onClick={run}
             disabled={step === "registering" || step === "authorizing"}
-            className="mt-3 w-full rounded-xl border border-border-subtle bg-surface-2 py-2.5 text-xs font-semibold disabled:opacity-60"
+            className="mt-3 w-full rounded-xl bg-surface-3 py-2.5 text-xs font-semibold disabled:opacity-60"
           >
             {step === "registering"
               ? "Confirm registration in wallet..."

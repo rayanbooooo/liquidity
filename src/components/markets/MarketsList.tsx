@@ -73,7 +73,7 @@ export function MarketsList({ assets }: { assets: Asset[] }) {
               <div className="font-mono text-sm font-medium tabular-nums">
                 {formatPrice(asset.price, asset.decimals)}
               </div>
-              <ChangeBadge value={asset.changePct24h} size="sm" className="mt-0.5" />
+              <ChangeBadge value={asset.changePct24h} size="sm" plain className="mt-0.5" />
             </div>
           </Link>
         ))}

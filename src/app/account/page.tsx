@@ -37,34 +37,31 @@ export default function AccountPage() {
         </div>
       </div>
 
-      <div className="mt-5 rounded-2xl border border-border-subtle bg-surface p-4">
-        <div className="flex items-center justify-between">
-          <span className="text-xs font-medium text-muted-2">On-chain wallet</span>
-          <span className="text-[10px] font-medium text-muted-2">Arbitrum One</span>
-        </div>
-        <div className="mt-2">
-          <ConnectWalletButton />
-        </div>
-        <p className="mt-2.5 text-[11px] leading-snug text-muted-2">
-          Connecting a wallet, and registering/authorizing a session key below, are real. Depositing
-          and placing orders aren&apos;t wired up yet — the balance below and every order in the app
-          stay simulated.
-        </p>
-      </div>
-
-      <AarkSessionSetup />
-
-      <div className="mt-4 rounded-2xl border border-border-subtle bg-surface p-4">
+      <div className="mt-5 rounded-3xl border border-border-subtle bg-surface p-5">
         <div className="text-xs font-medium text-muted-2">Simulated balance</div>
-        <div className="mt-1 font-mono text-3xl font-semibold tabular-nums">
+        <div className="mt-1 font-mono text-4xl font-semibold tracking-tight tabular-nums">
           {formatUsd(MARGIN_SUMMARY.totalEquity)}
         </div>
-        <button className="mt-3 w-full rounded-xl bg-long py-3 text-sm font-semibold text-black">
+        <button className="mt-4 w-full rounded-xl bg-long py-3 text-sm font-semibold text-black">
           Deposit
         </button>
       </div>
 
-      <div className="mt-4">
+      <div className="mt-3 flex items-center justify-between rounded-xl bg-surface-2 px-3.5 py-3">
+        <span className="text-xs font-medium text-muted-2">On-chain wallet · Arbitrum One</span>
+      </div>
+      <div className="mt-2">
+        <ConnectWalletButton />
+      </div>
+      <p className="mt-2.5 text-[11px] leading-snug text-muted-2">
+        Connecting a wallet, and registering/authorizing a session key below, are real. Depositing
+        and placing orders aren&apos;t wired up yet — the balance above and every order in the app
+        stay simulated.
+      </p>
+
+      <AarkSessionSetup />
+
+      <div className="mt-5">
         <RiskOverview />
       </div>
 

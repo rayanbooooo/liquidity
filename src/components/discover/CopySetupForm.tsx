@@ -31,7 +31,7 @@ export function CopySetupForm({ trader }: { trader: Trader }) {
   }
 
   return (
-    <div className="rounded-2xl border border-border-subtle bg-surface p-4">
+    <div className="rounded-3xl border border-border-subtle bg-surface p-4">
       <div className="mb-1 flex items-center justify-between">
         <span className="text-xs font-medium text-muted-2">Allocation</span>
         <span className="font-mono text-xs text-muted-2">{pctOfBalance.toFixed(0)}% of balance</span>
