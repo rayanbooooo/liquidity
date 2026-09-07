@@ -1,20 +1,23 @@
 import { ed25519 } from "@noble/curves/ed25519.js";
 import { base58 } from "@scure/base";
-import { encodeFunctionData, type Address, type Hex } from "viem";
+import { encodeFunctionData, encodePacked, keccak256, type Address, type Hex } from "viem";
 import {
   ARBITRUM_CHAIN_ID,
   ORDERLY_API_BASE,
   ORDERLY_EIP712_DOMAIN_NAME,
   ORDERLY_EIP712_DOMAIN_VERSION,
   ORDERLY_OFF_CHAIN_VERIFYING_CONTRACT,
+  ORDERLY_VAULT_PROXY_ARBITRUM,
   USDC_ARBITRUM_ADDRESS,
   getBrokerId,
 } from "./orderly-config";
 import {
   ADD_ORDERLY_KEY_EIP712_TYPES,
   REGISTRATION_EIP712_TYPES,
+  type DecodedDeposit,
   type OrderlyOrderRequest,
   type OrderlySessionKey,
+  type VaultDepositFE,
 } from "./orderly-types";
 
 const ORDERLY_DOMAIN = {
@@ -232,22 +235,93 @@ export function encodeUsdcApproval(spender: Address, amount: bigint): { to: Addr
 }
 
 /**
- * NOT implemented — deliberately. Orderly's Vault.deposit() takes a
- * `VaultDepositFE` struct (confirmed via Vault.sol's public function
- * signatures on GitHub: accountId/brokerHash/tokenHash/amount-shaped), but
- * this environment couldn't reach the struct's exact field order/types in
- * VaultTypes.sol, nor confirm how `accountId` and `brokerHash` are actually
- * derived (keccak256 of what, encoded how). Encoding this call wrong
- * doesn't fail loudly the way a bad EIP-712 signature does — a malformed
- * struct can silently deposit into the wrong account or fail confusingly
- * on-chain. Confirm the exact struct against
- * github.com/OrderlyNetwork/contract-evm's VaultTypes.sol (or Aark's own
- * app's network calls) before implementing this for real.
+ * Reconstructed from confirmed real facts, not guessed from scratch:
+ * - Vault.sol's public `deposit(VaultDepositFE calldata data)` signature
+ *   (confirmed from GitHub source).
+ * - The Vault's real `AccountDeposit`/`AccountWithdraw` event signatures
+ *   (confirmed): both use `bytes32 accountId`, `bytes32 tokenHash`,
+ *   `uint128 tokenAmount`; withdraw's event additionally carries
+ *   `bytes32 brokerHash`, and the Vault separately tracks allowed brokers
+ *   by `bytes32` hash (`setAllowedBroker(bytes32 _brokerHash, ...)`), so
+ *   the deposit struct almost certainly carries the same fields.
+ * - Documented behavior: "Account ID is derived from your wallet and the
+ *   brokerId." keccak256(address ++ brokerHash) is the standard pattern
+ *   for that in this class of contract.
+ *
+ * What's NOT confirmed: the exact struct field ORDER (matters for ABI
+ * tuple encoding) and whether the frontend is expected to pass a
+ * pre-derived accountId at all, versus the contract deriving it itself
+ * from msg.sender. Wrong here doesn't revert loudly the way a bad EIP-712
+ * signature does — it can misdirect funds. That's why this returns a
+ * decoded, human-readable preview alongside the raw calldata rather than
+ * just a "send" function: review it (ideally against what Aark's own app
+ * actually sends, via its network tab) before broadcasting.
  */
-export async function depositMargin(): Promise<never> {
-  throw new Error(
-    "depositMargin is not implemented: Vault.deposit()'s exact VaultDepositFE struct " +
-      "encoding and accountId/brokerHash derivation aren't confirmed. See the doc comment " +
-      "on this function. encodeUsdcApproval() above is real and ready to use once this is.",
-  );
+function hashUtf8(value: string): Hex {
+  return keccak256(encodePacked(["string"], [value]));
+}
+
+export function hashBrokerId(brokerId: string): Hex {
+  return hashUtf8(brokerId);
+}
+
+export function hashTokenSymbol(symbol: string): Hex {
+  return hashUtf8(symbol);
+}
+
+export function deriveAccountId(account: Address, brokerHash: Hex): Hex {
+  return keccak256(encodePacked(["address", "bytes32"], [account, brokerHash]));
+}
+
+const VAULT_DEPOSIT_ABI = [
+  {
+    name: "deposit",
+    type: "function",
+    stateMutability: "payable",
+    inputs: [
+      {
+        name: "data",
+        type: "tuple",
+        components: [
+          { name: "accountId", type: "bytes32" },
+          { name: "brokerHash", type: "bytes32" },
+          { name: "tokenHash", type: "bytes32" },
+          { name: "tokenAmount", type: "uint128" },
+        ],
+      },
+    ],
+    outputs: [],
+  },
+] as const;
+
+export function decodeDepositForReview(account: Address, amountUsdc: number): DecodedDeposit {
+  const brokerId = getBrokerId();
+  const brokerHash = hashBrokerId(brokerId);
+  const tokenHash = hashTokenSymbol("USDC");
+  const accountId = deriveAccountId(account, brokerHash);
+  return {
+    account,
+    brokerId,
+    accountId,
+    brokerHash,
+    tokenHash,
+    tokenSymbol: "USDC",
+    amountUsdc: amountUsdc.toFixed(2),
+    vaultAddress: ORDERLY_VAULT_PROXY_ARBITRUM,
+  };
+}
+
+/** amountUsdc in whole USDC (e.g. 100.5), converted to USDC's 6 decimals. */
+export function buildDepositCalldata(account: Address, amountUsdc: number): { to: Address; data: Hex } {
+  const brokerHash = hashBrokerId(getBrokerId());
+  const deposit: VaultDepositFE = {
+    accountId: deriveAccountId(account, brokerHash),
+    brokerHash,
+    tokenHash: hashTokenSymbol("USDC"),
+    tokenAmount: BigInt(Math.round(amountUsdc * 1_000_000)),
+  };
+  return {
+    to: ORDERLY_VAULT_PROXY_ARBITRUM,
+    data: encodeFunctionData({ abi: VAULT_DEPOSIT_ABI, functionName: "deposit", args: [deposit] }),
+  };
 }

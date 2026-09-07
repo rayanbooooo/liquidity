@@ -9,8 +9,8 @@ import {
 import { RiskOverview } from "@/components/account/RiskOverview";
 import { PositionRow } from "@/components/positions/PositionRow";
 import { AarkSessionSetup } from "@/components/wallet/AarkSessionSetup";
+import { BalanceCard } from "@/components/wallet/BalanceCard";
 import { ConnectWalletButton } from "@/components/wallet/ConnectWalletButton";
-import { formatUsd } from "@/lib/calc";
 import { MARGIN_SUMMARY, POSITIONS } from "@/lib/mock-data";
 
 const SETTINGS_ROWS = [
@@ -37,15 +37,7 @@ export default function AccountPage() {
         </div>
       </div>
 
-      <div className="mt-5 rounded-3xl border border-border-subtle bg-surface p-5">
-        <div className="text-xs font-medium text-muted-2">Simulated balance</div>
-        <div className="mt-1 font-mono text-4xl font-semibold tracking-tight tabular-nums">
-          {formatUsd(MARGIN_SUMMARY.totalEquity)}
-        </div>
-        <button className="mt-4 w-full rounded-xl bg-long py-3 text-sm font-semibold text-black">
-          Deposit
-        </button>
-      </div>
+      <BalanceCard simulatedBalance={MARGIN_SUMMARY.totalEquity} />
 
       <div className="mt-3 flex items-center justify-between rounded-xl bg-surface-2 px-3.5 py-3">
         <span className="text-xs font-medium text-muted-2">On-chain wallet · Arbitrum One</span>
@@ -54,9 +46,10 @@ export default function AccountPage() {
         <ConnectWalletButton />
       </div>
       <p className="mt-2.5 text-[11px] leading-snug text-muted-2">
-        Connecting a wallet, and registering/authorizing a session key below, are real. Depositing
-        and placing orders aren&apos;t wired up yet — the balance above and every order in the app
-        stay simulated.
+        Wallet connection, session-key authorization, real order submission (crypto instruments)
+        and deposits are all real once a session is set up below. The deposit contract call is a
+        best-effort reconstruction — reviewed before every send, not blind. The balance above stays
+        simulated regardless.
       </p>
 
       <AarkSessionSetup />

@@ -2,8 +2,11 @@
 
 A mobile-first perpetuals trading terminal — crypto, forex, and commodities
 with leverage up to 1000x. Absolute dark mode, tabular-numeral pricing,
-copy trading. Everything runs on deterministic mock data; there is no
-backend or real order execution yet.
+copy trading. Prices, positions, and the portfolio balance shown
+throughout are deterministic mock data — but crypto order submission and
+deposits can run for real against Aark Digital's actual Orderly Network
+backend once a session key is set up; see "Aark Digital integration
+status" below.
 
 ## Stack
 
@@ -23,39 +26,49 @@ docs/SDKs/contract source, cross-checked across multiple independent
 sources — see the doc comments in `src/lib/aark/` for exactly what's
 confirmed vs. still assumed at each step.
 
-**Real:**
+**Real, end to end:**
 - Wallet connection (`src/lib/wagmi-config.ts`, `Providers`,
   `ConnectWalletButton`) on Arbitrum One, wrong-network prompt included.
 - Registration (`registerAccount`) — signs Orderly's actual `Registration`
   EIP-712 message with the connected wallet.
-- **Session keys** (`generateSessionKey` + `authorizeSessionKey` — this is
-  the "EIP-712 session key framework and delegate authorization" from the
-  original ask): generates a local ed25519 keypair client-side, then
-  wallet-signs Orderly's `AddOrderlyKey` EIP-712 message authorizing it —
-  after that, orders sign with the session key, no wallet popup per trade.
-  Wired into a real UI flow on the Account page (`AarkSessionSetup`).
-- Per-order request signing (`signOrderlyRequest`, `submitOrder`) — ed25519
-  over Orderly's documented `{timestamp}{method}{path}{body}` scheme.
-- USDC's real contract address on Arbitrum One, and the ERC-20 `approve`
-  call needed before any deposit (`encodeUsdcApproval`).
-
-**Still a stub, on purpose:** `depositMargin()`. Orderly's Vault contract
-(source found on GitHub) takes a `VaultDepositFE` struct, but this
-environment couldn't confirm its exact field order/types, nor how
-`accountId`/`brokerHash` are derived. A malformed EIP-712 signature just
-fails to verify; a malformed deposit struct can silently misdirect funds —
-so this one stays unimplemented rather than guessed. See the doc comment
-on `depositMargin` in `orderly-client.ts`.
+- **Session keys** (`generateSessionKey` + `authorizeSessionKey` — the
+  "EIP-712 session key framework and delegate authorization" from the
+  original ask): a local ed25519 keypair generated client-side, then
+  wallet-signed via Orderly's real `AddOrderlyKey` EIP-712 message. Once
+  authorized, orders sign with the session key, no wallet popup per trade.
+  Persisted per-wallet in localStorage (`session-store.ts`, via
+  `useSyncExternalStore` so every component reacts live when a session is
+  created or cleared, no reload needed) and surfaced in a real UI flow on
+  the Account page (`AarkSessionSetup`).
+- **Order submission** (`signOrderlyRequest` + `submitOrder`) — ed25519
+  request signing over Orderly's documented
+  `{timestamp}{method}{path}{body}` scheme. Wired straight into the Trade
+  Ticket's Open Long/Short button: with an authorized session and a
+  symbol that maps to a real Orderly instrument (crypto only —
+  `ORDERLY_INSTRUMENT_BY_SYMBOL` in `orderly-config.ts`; forex/commodities
+  aren't real Orderly markets and stay simulated), it sends a real signed
+  order instead of the demo flow.
+- **Deposits** (`buildDepositCalldata`, `DepositFlow` on the Account page)
+  — reconstructed from confirmed facts (Vault.sol's real
+  `deposit(VaultDepositFE)` signature, the real `AccountDeposit`/
+  `AccountWithdraw` event field types, and Orderly's documented
+  `accountId = f(wallet, brokerId)` rule), not guessed from nothing. Lower
+  confidence than everything above it — the exact struct *field order*
+  isn't independently confirmed — so it's not a blind one-click send: it
+  shows the decoded accountId/brokerHash/tokenHash/amount for review
+  before broadcasting anything, with that caveat stated in the UI itself.
+  Full derivation reasoning is in the doc comment above
+  `buildDepositCalldata` in `orderly-client.ts`.
 
 **One required config value, not fabricated:** `NEXT_PUBLIC_AARK_BROKER_ID`
 — every Orderly broker has its own id, and Aark's isn't publicly listed
 anywhere this environment could reach. Get it from Aark's own app (network
 tab) or Orderly's broker lookup endpoint, then set it in `.env.local`.
-`AarkSessionSetup` on the Account page explains this inline if it's unset.
+`AarkSessionSetup` on the Account page explains this inline if it's unset,
+and nothing above will run without it.
 
-The Trade Ticket and Account balance are still simulated throughout —
-registering/authorizing a session key doesn't deposit anything or place
-any order.
+The portfolio balance shown throughout the app stays simulated mock data
+regardless — it's not read from the real Orderly account.
 
 ## Getting started
 
@@ -85,14 +98,17 @@ a fixed-width device frame.
   the fixed 5-tab `BottomNav`.
 - `src/components/trade/` — `PriceChart` (the `lightweight-charts`
   wrapper), `OrderTicket`, and `LeverageSlider`.
-- `src/components/wallet/` — `ConnectWalletButton` (real wagmi wallet
-  connection) and `AarkSessionSetup` (real registration + session-key
-  authorization flow).
+- `src/components/wallet/` — `ConnectWalletButton` (wagmi wallet
+  connection), `AarkSessionSetup` (registration + session-key
+  authorization), `BalanceCard` + `DepositFlow` (the real, review-before-
+  send deposit flow on the Account page).
 - `src/lib/aark/` — the Orderly Network integration: `orderly-config.ts`
-  (endpoints/domain/addresses, each comment-flagged with how confident it
-  is), `orderly-types.ts` (EIP-712 struct + request shapes), and
-  `orderly-client.ts` (the actual signing/request logic) — see "Aark
-  Digital integration status" above for what's real vs. still a stub.
+  (endpoints/domain/addresses/instrument mapping, each comment-flagged
+  with how confident it is), `orderly-types.ts` (EIP-712 struct + request
+  shapes), `orderly-client.ts` (the actual signing/request/deposit-
+  encoding logic), and `session-store.ts` (the localStorage-backed,
+  `useSyncExternalStore`-driven session shared across components) — see
+  "Aark Digital integration status" above for what's real vs. reconstructed.
 - `src/app/*` — Home, Markets, `/trade/[ticker]`, Discover +
   `/discover/[trader]`, Account.
 

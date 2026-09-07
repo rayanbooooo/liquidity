@@ -71,3 +71,27 @@ export interface OrderlyOrderRequest {
   order_price?: number;
   reduce_only?: boolean;
 }
+
+/**
+ * Reconstructed, not confirmed byte-for-byte against Orderly's own source —
+ * see the doc comment on `buildDepositCalldata` in orderly-client.ts for
+ * exactly how confident each field is and where it came from.
+ */
+export interface VaultDepositFE {
+  accountId: `0x${string}`;
+  brokerHash: `0x${string}`;
+  tokenHash: `0x${string}`;
+  tokenAmount: bigint;
+}
+
+/** Human-readable version of VaultDepositFE for a pre-send review step. */
+export interface DecodedDeposit {
+  account: Address;
+  brokerId: string;
+  accountId: string;
+  brokerHash: string;
+  tokenHash: string;
+  tokenSymbol: string;
+  amountUsdc: string;
+  vaultAddress: Address;
+}

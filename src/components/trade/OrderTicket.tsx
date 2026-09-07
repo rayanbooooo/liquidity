@@ -10,6 +10,9 @@ import { formatPrice, formatUsd, liquidationPrice } from "@/lib/calc";
 import { WALLET_BALANCE } from "@/lib/mock-data";
 import type { Asset, OrderType, Side } from "@/lib/types";
 import { cn } from "@/lib/utils";
+import { getOrderlyInstrument } from "@/lib/aark/orderly-config";
+import { submitOrder } from "@/lib/aark/orderly-client";
+import { useAarkSession } from "@/lib/aark/session-store";
 
 const ORDER_TYPE_OPTIONS = [
   { value: "market" as OrderType, label: "Market" },
@@ -40,6 +43,13 @@ export function OrderTicket({ asset }: { asset: Asset }) {
   const [amountInput, setAmountInput] = useState("");
   const [limitPriceInput, setLimitPriceInput] = useState(() => asset.price.toFixed(asset.decimals));
   const [confirmation, setConfirmation] = useState<string | null>(null);
+  const [submitError, setSubmitError] = useState<string | null>(null);
+  const [submitting, setSubmitting] = useState(false);
+
+  const connectedAddress = connection.status === "connected" ? connection.address : undefined;
+  const session = useAarkSession(connectedAddress);
+  const orderlyInstrument = getOrderlyInstrument(asset.symbol);
+  const realOrdersAvailable = Boolean(session && orderlyInstrument);
 
   const entryPrice = orderType === "market" ? asset.price : parseFloat(limitPriceInput) || asset.price;
   const amountValue = parseFloat(amountInput) || 0;
@@ -77,8 +87,33 @@ export function OrderTicket({ asset }: { asset: Asset }) {
     setAmountInput(inputMode === "usd" ? maxNotional.toFixed(2) : (maxNotional / entryPrice).toFixed(decimals));
   }
 
-  function submit() {
+  async function submit() {
     if (!canSubmit) return;
+    setSubmitError(null);
+
+    if (realOrdersAvailable && session && orderlyInstrument) {
+      setSubmitting(true);
+      try {
+        await submitOrder(session.sessionKey, session.accountId, {
+          symbol: orderlyInstrument,
+          order_type: orderType === "market" ? "MARKET" : "LIMIT",
+          side: side === "long" ? "BUY" : "SELL",
+          order_quantity: qty,
+          order_price: orderType === "market" ? undefined : entryPrice,
+        });
+        setConfirmation(
+          `${side === "long" ? "Long" : "Short"} ${asset.display} order sent to Aark/Orderly.`,
+        );
+        setAmountInput("");
+      } catch (e) {
+        setSubmitError(e instanceof Error ? e.message : String(e));
+      } finally {
+        setSubmitting(false);
+      }
+      window.setTimeout(() => setConfirmation(null), 4000);
+      return;
+    }
+
     setConfirmation(
       `${side === "long" ? "Long" : "Short"} ${asset.display} opened at ${formatPrice(entryPrice, asset.decimals)}`,
     );
@@ -172,23 +207,34 @@ export function OrderTicket({ asset }: { asset: Asset }) {
         </div>
       )}
 
+      {submitError && (
+        <div className="mt-3 rounded-lg bg-short-dim px-3 py-2 text-xs font-medium text-short">
+          Order failed: {submitError}
+        </div>
+      )}
+
       {confirmation && (
-        <div className="mt-3 rounded-lg bg-long-dim px-3 py-2 text-xs font-medium text-long">{confirmation} · Demo order, not sent to a real venue.</div>
+        <div className="mt-3 rounded-lg bg-long-dim px-3 py-2 text-xs font-medium text-long">
+          {confirmation} {realOrdersAvailable ? "· Real Orderly API call." : "· Demo order, not sent to a real venue."}
+        </div>
       )}
 
       <Button
         variant={side}
         size="lg"
         className="mt-5 w-full"
-        disabled={!canSubmit}
+        disabled={!canSubmit || submitting}
         onClick={submit}
       >
-        {side === "long" ? "Open Long" : "Open Short"} · {asset.display}
+        {submitting ? "Submitting..." : `${side === "long" ? "Open Long" : "Open Short"} · ${asset.display}`}
       </Button>
       {connection.status === "connected" && (
         <p className="mt-2 text-center text-[11px] text-muted-2">
-          Wallet connected, but live execution via Aark Digital isn&apos;t wired up yet — this
-          order stays simulated.
+          {realOrdersAvailable
+            ? `Real: signs and sends a live order to Orderly for ${orderlyInstrument}.`
+            : session
+              ? "Session authorized, but this instrument isn't mapped to a real Orderly market — stays simulated."
+              : "Wallet connected — set up an Aark session key on the Account page to enable real orders."}
         </p>
       )}
     </div>

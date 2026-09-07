@@ -64,3 +64,24 @@ export function getBrokerId(): string {
   }
   return brokerId;
 }
+
+/**
+ * This app's internal symbol -> Orderly's PERP_<base>_USDC instrument
+ * format (confirmed pattern from real ticker examples like "BTCUSD-PERP"
+ * and "PERP_BTC_USDC" seen across Orderly's docs/SDK). Real order
+ * submission is only offered for symbols listed here — forex and
+ * commodity symbols in this app's mock data aren't real Orderly
+ * instruments, so they stay simulated regardless of session/broker state.
+ */
+export const ORDERLY_INSTRUMENT_BY_SYMBOL: Record<string, string> = {
+  BTC: "PERP_BTC_USDC",
+  ETH: "PERP_ETH_USDC",
+  SOL: "PERP_SOL_USDC",
+  XRP: "PERP_XRP_USDC",
+  DOGE: "PERP_DOGE_USDC",
+  AVAX: "PERP_AVAX_USDC",
+};
+
+export function getOrderlyInstrument(symbol: string): string | undefined {
+  return ORDERLY_INSTRUMENT_BY_SYMBOL[symbol.toUpperCase()];
+}
